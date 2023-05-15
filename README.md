@@ -1,4 +1,8 @@
-https://github.com/Sulwon/project_korea/assets/54029707/119facce-a83d-4cf0-898a-eb3e2c8eb6ae
+
+
+https://github.com/Sulwon/project_korea/assets/54029707/507d4832-c3c8-4942-9b84-b71cf0959a55
+
+
 ![image](https://github.com/Sulwon/project_korea/assets/54029707/e762c6a2-9626-4825-b74e-e9b3f58676b1)
 ![image](https://github.com/Sulwon/project_korea/assets/54029707/ac97e5fc-d8d4-4684-a575-87935d61a48a)
 ![image](https://github.com/Sulwon/project_korea/assets/54029707/82172b45-20b3-45d0-a69e-93f7de4ee01b)
