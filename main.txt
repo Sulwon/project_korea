@@ -1,0 +1,1690 @@
+Dim main_loop As Boolean, t As Single, count As Single, page As Single, t2 As Single, sel_dummy As Single, delayed As Double, forward As String, stat As String, sprite As Single, stage As Single, busan_c As Boolean, bgm_name As String
+Dim speed As Single, jumping As Single, keydown_left As Boolean, keydown_right As Boolean, first_join As Boolean, click_deny As Boolean, velo As Boolean, music As Boolean, mo As String, mo_x As Single, mo_y As Single, last_answer As Single
+Dim map1(14, 550, 550) As Boolean, map2(14, 520, 525) As String, player_x As Integer, player_y As Integer, player_x2 As Integer, player_y2 As Integer, open_main As Boolean, now_map As Integer, over_jump As Boolean, inc As Single
+
+
+Private Sub UserForm_Activate()
+    
+    bgm_name = "bgm.mp3"
+    stage = Cells(10, 3)
+    player.ZOrder (0)
+    ship.ZOrder (0)
+    help.ZOrder (0)
+    chat.ZOrder (0)
+    chat_text.ZOrder (0)
+    name_box.ZOrder (0)
+    chat_d.ZOrder (0)
+    name_ok.ZOrder (0)
+    chat3.ZOrder (0)
+    chat3_d.ZOrder (0)
+    chat3_d2.ZOrder (0)
+    chat3_image.ZOrder (0)
+    chat3_name.ZOrder (0)
+    chat3_x.ZOrder (0)
+    chat4.ZOrder (0)
+    chat4_q.ZOrder (0)
+    chat4_q2.ZOrder (0)
+    chat4_d.ZOrder (0)
+    chat4_box.ZOrder (0)
+    chat4_a.ZOrder (0)
+    black.ZOrder (0)
+    text.ZOrder (0)
+    text2.ZOrder (0)
+    text3.ZOrder (0)
+    chat5_right_d.ZOrder (0)
+    chat5_right_d2.ZOrder (0)
+    chat5_left_d.ZOrder (0)
+    chat5_left_d2.ZOrder (0)
+    main_loop = True
+    key_deny = 0
+    delayed = 0.008
+    forward = "r"
+    stat = "idle"
+    sprite = 0
+    ingame.Left = 550
+    intro.Left = 0
+    화면_스테이지.Left = 550
+    화면_환경설정.Left = 550
+    start_effect
+    now_map = 0
+    player.Left = Int(player.Left)
+    player.Top = Int(player.Top)
+    If Cells(8, 8) = "ON" Then
+        music = True
+        opt1_text.Caption = "켜짐"
+    Else
+        music = False
+        opt1_text.Caption = "꺼짐"
+    End If
+    If Cells(10, 8) = "NORMAL" Then
+        opt2_text.Caption = "보통"
+        velo = False
+    Else
+        opt2_text.Caption = "빠름"
+        velo = True
+    End If
+    Call map_Database
+    Call PlaySound(bgm_name)
+    Call sleep(0.5)
+    For i = 1 To 5
+        intro_image.Picture = intro.Controls.Item("intro" & i).Picture
+        Call sleep(0.04)
+        intro_image.Top = intro_image.Top - 10
+    Next i
+    Call sleep(0.5)
+    Call refresh
+    화면_메인.Left = 0
+    intro.Left = 550
+    Call refresh2
+    Call bird_action
+    Call main_looping
+    
+End Sub
+
+Function bird_action()
+
+    DoEvents
+    Randomize
+    open_main = True
+    Dim turning As Single, bird_f As Single, bird_c As Single
+    Do While open_main
+        If turning > 0 Then
+            turning = turning - 1
+        Else
+            turning = Int(Rnd * 10) + 3
+            If bird_f = 1 Then
+                toggle.Picture = bird_left.Picture
+                bird_f = 0
+            Else
+                toggle.Picture = bird_right.Picture
+                bird_f = 1
+            End If
+        End If
+        If first_join = False Then
+            bird_c = bird_c + 1
+            If bird_c > 9 Then
+                dummy_say.Visible = True
+                If bird_c > 14 Then bird_c = 0
+            Else
+                dummy_say.Visible = False
+            End If
+        End If
+        Call sleep(0.4)
+    Loop
+
+End Function
+
+Function main_looping()
+    
+    DoEvents
+    Do While main_loop
+        
+        t = Timer
+        If player.Visible = True Then
+            player_x = Int(player.Left)
+            player_x2 = player_x + 38
+            player_y = Int(player.Top)
+            player_y2 = player_y + 47
+            count = count + 1
+            If count > 15 Then
+                count = 0
+                sprite = sprite + 1
+                If stat = "idle" Then
+                    If sprite = 2 Then sprite = 0
+                ElseIf stat = "run" Then
+                    If sprite = 4 Then sprite = 0
+                ElseIf stat = "jump" Then
+                    If sprite = 3 Then sprite = 2
+                End If
+                player.Picture = ingame.Controls.Item(forward & "_" & stat & sprite).Picture
+                If ingame.Controls.Item(mo).Visible = True Then
+                    inc = inc + 1
+                    If inc > 6 Then inc = 1
+                    If inc < 4 Then
+                        If mo_x <> 0 Then ingame.Controls.Item(mo).Left = ingame.Controls.Item(mo).Left + mo_x
+                        If mo_y <> 0 Then ingame.Controls.Item(mo).Top = ingame.Controls.Item(mo).Top + mo_y
+                        If busan3_5.Visible = True Then
+                            busan3_5.Top = busan3_5.Top + 1
+                            busan3_6.Top = busan3_6.Top + 1
+                        End If
+                    Else
+                        If mo_x <> 0 Then ingame.Controls.Item(mo).Left = ingame.Controls.Item(mo).Left - mo_x
+                        If mo_y <> 0 Then ingame.Controls.Item(mo).Top = ingame.Controls.Item(mo).Top - mo_y
+                        If busan3_5.Visible = True Then
+                            busan3_5.Top = busan3_5.Top - 1
+                            busan3_6.Top = busan3_6.Top - 1
+                        End If
+                    End If
+                End If
+            End If
+            If speed < 0 And player.Left + speed > 0 Then
+                If map1(now_map, player_y + 10, player_x + speed) = False And map1(now_map, player_y2 - 10, player_x + speed) = False Then player.Left = player.Left + speed
+            ElseIf speed > 0 And player.Left + speed < 474 Then
+                If map1(now_map, player_y + 10, player_x2 + speed) = False And map1(now_map, player_y2 - 10, player_x2 + speed) = False Then player.Left = player.Left + speed
+            End If
+            If map2(now_map, player.Top + 23, player.Left + 19) <> "" Then
+                help.Left = player.Left
+                help.Top = player.Top - 28
+                If help.Visible = False Then
+                    help.Visible = True
+                End If
+            ElseIf help.Visible = True Then
+                help.Visible = False
+            End If
+            If jumping > 1 Then
+                If player_y < 3 Then
+                    jumping = 1
+                Else
+                    jumping = jumping - 1
+                    player.Top = player.Top - 2
+                End If
+            ElseIf map1(now_map, player_y2, player_x) = False And map1(now_map, player_y2, player_x2) = False Then
+                stat = "jump"
+                sprite = 2
+                player.Top = player.Top + 2
+                If player.Top > 450 Then
+                    If gung_1.Visible = True Then
+                        player.Top = -9
+                    ElseIf gung2_1.Visible = True Or gung3_1.Visible = True Then
+                        player.Left = 5
+                        player.Top = 340
+                    ElseIf gung4_1.Visible = True Then
+                        player.Left = 173
+                        player.Top = 404
+                    ElseIf dok4_1.Visible = True Then
+                        Call trigger("마지막2")
+                    ElseIf dok5_1.Visible = True Then
+                        player.Left = 30
+                        player.Top = 398
+                    End If
+                End If
+            ElseIf stat = "jump" Then
+                sprite = 0
+                jumping = 0
+                If keydown_left = False And keydown_right = False Then
+                    stat = "idle"
+                    speed = 0
+                Else
+                    keep_move = False
+                    stat = "run"
+                End If
+            End If
+            If ship.Visible = True Then
+                ship.Left = player.Left - 93
+                ship.Top = player.Top - 8.5
+            End If
+        End If
+        Do While Timer < t + delayed
+            DoEvents
+        Loop
+    Loop
+
+End Function
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    main_loop = False
+    open_main = False
+    chat_d.Visible = False
+    chat3_x.Visible = False
+    Call StopSound(bgm_name)
+End Sub
+
+Private Sub map_Click()
+    If map.Height = 70 Then Call map_size_up
+End Sub
+
+Function map_size_down()
+
+    If map.Height < 40 Then Exit Function
+    Call PlaySound("page_change.mp3")
+    stage1.Visible = False
+    stage2.Visible = False
+    stage3.Visible = False
+    stage1.Picture = stage1_off.Picture
+    stage2.Picture = stage2_off.Picture
+    stage3.Picture = stage3_off.Picture
+    lb1.Visible = False
+    lb2.Visible = False
+    lb3.Visible = False
+    map_image.Visible = False
+    map_text.Visible = False
+    map_enter.Visible = False
+    For i = 1 To 5
+        map.Height = map.Height - 40
+        map.Width = map.Width - 30
+        map.Left = map.Left - 30
+        map.Top = map.Top - 19
+        t2 = Timer
+        Do While Timer < t2 + 0.015
+            DoEvents
+        Loop
+    Next i
+        
+End Function
+
+Function map_size_up()
+    
+    Call PlaySound("page_change.mp3")
+    lb4.Visible = False
+    map_image.Visible = False
+    map_text.Visible = False
+    map_enter.Visible = False
+    If map.Height <> 270 Then
+        For i = 1 To 5
+            
+            map.Height = map.Height + 40
+            map.Width = map.Width + 30
+            map.Left = map.Left + 30
+            map.Top = map.Top + 19
+            t2 = Timer
+            Do While Timer < t2 + 0.015
+                DoEvents
+            Loop
+        Next i
+    End If
+    stage1.Visible = True
+    If stage <> 1 Then stage2.Visible = True
+    If stage = 3 Then stage3.Visible = True
+        
+End Function
+
+Function sleep(ByVal i As Single)
+    Dim t3 As Single
+    If velo Then i = i / 2
+    t3 = Timer
+    Do While Timer < t3 + i
+        DoEvents
+    Loop
+End Function
+
+Private Sub stage1_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If stage1.Picture = stage1_off.Picture Then
+        stage1.Picture = stage1_on.Picture
+        lb1.Caption = "경"
+        lb1.Visible = True
+        Call sleep(0.1)
+        lb1.Caption = "경복"
+        Call sleep(0.1)
+        lb1.Caption = "경복궁"
+    End If
+End Sub
+Private Sub stage2_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If stage2.Picture = stage2_off.Picture Then
+        stage2.Picture = stage2_on.Picture
+        lb2.Caption = "부"
+        lb2.Visible = True
+        Call sleep(0.15)
+        lb2.Caption = "부산"
+    End If
+End Sub
+Private Sub stage3_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If stage3.Picture = stage3_off.Picture Then
+        stage3.Picture = stage3_on.Picture
+        lb3.Caption = "독"
+        lb3.Visible = True
+        Call sleep(0.15)
+        lb3.Caption = "독도"
+    End If
+End Sub
+Private Sub map_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    stage1.Picture = stage1_off.Picture
+    stage2.Picture = stage2_off.Picture
+    stage3.Picture = stage3_off.Picture
+    lb1.Visible = False
+    lb2.Visible = False
+    lb3.Visible = False
+End Sub
+Private Sub stage1_Click()
+    map_size_down
+    Call map_z(1, "경복궁")
+End Sub
+Private Sub stage2_Click()
+    map_size_down
+    Call map_z(2, "부산")
+End Sub
+Private Sub stage3_Click()
+    map_size_down
+    Call map_z(3, "독도")
+End Sub
+
+Function map_z(ByVal number As Single, ByVal inte As String)
+
+    map_image.Picture = 화면_스테이지.Controls.Item("map_" & number).Picture
+    Select Case number:
+        Case 1:
+            lb4.Top = 36.75
+            map_text.Caption = "조선전기에 창건되어 정궁으로 이용된 궁궐.     사적 제117호. 도성의 북쪽에 있다고 하여 북궐(北闕)이라고도 불리었다."
+        Case 2:
+            lb4.Top = 80
+            map_text.Caption = "대한민국 제2의 도시로 최초의 직할시, 광역시이다. 국내 최대국제무역항이 있는 제1의 항구도시라 불린다."
+        Case 3:
+            lb4.Top = 80
+            map_text.Caption = "돌로 된 섬이란 뜻의 돌섬의 경상도 방언 명칭인 독섬을 한자의 음과 훈을 빌려쓰며 독도라 불리는  대한민국 최동단의 섬"
+    End Select
+    map_text.Visible = True
+    lb4.Caption = Mid(inte, 1, 1)
+    map_image.Visible = True
+    map_text.Visible = True
+    lb4.Visible = True
+    Call sleep(0.2)
+    lb4.Caption = Mid(inte, 1, 2)
+    Call sleep(0.2)
+    If inte = "경복궁" Then lb4.Caption = "경복궁"
+    If number = 1 And stage = 1 Then map_enter.Visible = True
+    If number = 2 And stage = 2 Then map_enter.Visible = True
+    If number = 3 And stage = 3 Then map_enter.Visible = True
+
+End Function
+
+Function start_effect()
+    Call sleep(0.3)
+    시작.Font = "EBS주시경 Light"
+    시작.Visible = True
+    시작.ForeColor = 14737632
+    Call sleep(0.05)
+    시작.ForeColor = 12632256
+    Call sleep(0.05)
+    시작.ForeColor = 8421504
+    Call sleep(0.05)
+    시작.ForeColor = 4210752
+End Function
+
+
+Private Sub 시작_Click()
+    open_main = False
+    If 시작.Caption = "여행" Then
+        화면_메인.Left = 550
+        If stage > 0 Then
+            enter_stage
+        Else
+            Call refresh
+            tutorial
+        End If
+    ElseIf 시작.Caption = "설정" Then
+        Call refresh
+        화면_환경설정.Left = 0
+        화면_메인.Left = 550
+        Call refresh2
+    ElseIf 시작.Caption = "종료" Then
+        Call refresh
+        Unload Me
+    End If
+End Sub
+
+Private Sub 시작_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    시작.ForeColor = 0
+    시작.Font.Bold = True
+End Sub
+
+Private Sub toggle_Click()
+
+    Call PlaySound("page_change.mp3")
+    first_join = True
+    dummy_say.Visible = False
+    시작.ForeColor = 14737632
+    If 시작.Caption = "여행" Then
+        시작.Caption = "설정"
+    ElseIf 시작.Caption = "설정" Then
+        시작.Caption = "종료"
+    Else
+        시작.Caption = "여행"
+    End If
+    Call sleep(0.05)
+    시작.ForeColor = 12632256
+    Call sleep(0.05)
+    시작.ForeColor = 8421504
+    Call sleep(0.05)
+    시작.ForeColor = 4210752
+    
+End Sub
+Private Sub chat_Click()
+    If name_ok.Visible = True Then Exit Sub
+    If chat.Visible = True Then
+        If chat_d.Visible = True Then
+            chat.Visible = False
+            chat_d.Visible = False
+            chat_text.Visible = False
+        Else
+            chat_d.Visible = True
+        End If
+    End If
+End Sub
+
+Private Sub chat_text_Click()
+    If name_ok.Visible = True Then Exit Sub
+    If chat.Visible = True Then
+        If chat_d.Visible = True Then
+            chat.Visible = False
+            chat_d.Visible = False
+            chat_text.Visible = False
+        Else
+            chat_d.Visible = True
+        End If
+    End If
+End Sub
+Private Sub chat_d_Click()
+    If name_ok.Visible = True Then Exit Sub
+    If chat.Visible = True Then
+        If chat_d.Visible = True Then
+            chat.Visible = False
+            chat_d.Visible = False
+            chat_text.Visible = False
+        Else
+            chat_d.Visible = True
+        End If
+    End If
+End Sub
+Private Sub ingame_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    If chat.Visible = True Then
+        If chat_d.Visible = True Then
+            chat.Visible = False
+            chat_d.Visible = False
+            chat_text.Visible = False
+        Else
+            chat_d.Visible = True
+        End If
+    Else
+        If KeyCode = 37 And keydown_left = False Then
+            keydown_left = True
+            forward = "l"
+            speed = -1
+            If stat <> "jump" Then
+                sprite = 0
+                stat = "run"
+                player.Picture = ingame.Controls.Item(forward & "_" & stat & sprite).Picture
+            End If
+            If map1(now_map, player_y + 10, player_x + speed) = False And map1(now_map, player_y2 - 10, player_x + speed) = False Then player.Left = player.Left + speed
+        ElseIf KeyCode = 39 And keydown_right = False Then
+            keydown_right = True
+            forward = "r"
+            speed = 1
+            If stat <> "jump" Then
+                sprite = 0
+                stat = "run"
+                player.Picture = ingame.Controls.Item(forward & "_" & stat & sprite).Picture
+            End If
+            If map1(now_map, player_y + 10, player_x2 + speed) = False And map1(now_map, player_y2 - 10, player_x2 + speed) = False Then player.Left = player.Left + speed
+        ElseIf KeyCode = 38 Then
+            sprite = 0
+            If stat <> "jump" Then
+                If busan4_1.Visible And player.Left > 185 And player.Top < 385 And ship.Visible = False Then
+                    If busan_c = False Then
+                        busan_c = True
+                        Call talk("파도 때문에 갈 수가 없어!", 1)
+                        Call talk("방법이 없을까?", 1)
+                        Call map_db_call3(9, "busan4_10", "배조각1", 0, 0)
+                        Call map_db_call3(9, "busan4_11", "배조각2", 0, 0)
+                        Call map_db_call3(9, "busan4_12", "배조각3", 0, 0)
+                        Call map_db_call3(8, "busan4_13", "독도이동", 1, 0)
+                    End If
+                    player.Top = player.Top + 4
+                Else
+                    stat = "jump"
+                    jumping = 50
+                    If over_jump Then jumping = 200
+                End If
+            End If
+        ElseIf KeyCode = 40 Then
+            If help.Visible = True Then
+                help.Visible = False
+                Call trigger(map2(now_map, player.Top + 23, player.Left + 19))
+            End If
+        End If
+    End If
+End Sub
+
+
+Private Sub ingame_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+
+    If KeyCode = 37 Then keydown_left = False
+    If KeyCode = 39 Then keydown_right = False
+    If KeyCode = 37 Or KeyCode = 39 Then
+        If keydown_left = False And keydown_right = False Then
+            sprite = 0
+            speed = 0
+            If stat <> "jump" Then
+                stat = "idle"
+                speed = 0
+            End If
+        End If
+    End If
+    
+End Sub
+
+Private Sub 화면_메인_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If 시작.ForeColor = 0 Then
+        시작.ForeColor = 4210752
+        시작.Font.Bold = False
+    End If
+End Sub
+
+Function refresh()
+    Call PlaySound("page_change.mp3")
+    click_deny = True
+    black.Left = 0
+    black.Top = 0
+    black.Width = 0
+    black.Height = 0
+    black.Visible = True
+    
+    For i = 1 To 20
+        
+        black.Width = black.Width + 27
+        black.Height = black.Height + 26
+        Call sleep(0.01)
+        
+    Next i
+    
+End Function
+
+Function refresh2()
+
+    Call sleep(0.8)
+
+    For i = 1 To 20
+        
+        black.Width = black.Width - 27
+        black.Height = black.Height - 26
+        Call sleep(0.005)
+        If 화면_환경설정.Left = 0 Then
+            If tab1.Visible = False And black.Width < 345 Then
+                tab3.Visible = True
+                tab2_text.Visible = True
+            End If
+            If tab2.Visible = False And black.Width < 175 Then
+                tab2.Visible = True
+                tab1_text.Visible = True
+            End If
+        End If
+        
+    Next i
+    If 화면_환경설정.Left = 0 Then
+        tab1.Visible = True
+        tab0_text.Visible = True
+    End If
+    black.Visible = False
+    click_deny = False
+
+End Function
+
+Function chatting(ByVal a As String, ByVal b As String)
+
+    Call PlaySound("keypress.wav")
+    text.Caption = ""
+    text2.Caption = ""
+    For i = 1 To Len(a)
+        text.Caption = Mid(a, 1, i)
+        Call sleep(0.08)
+    Next i
+    For i = 1 To Len(b)
+        text2.Caption = Mid(b, 1, i)
+        Call sleep(0.08)
+    Next i
+    Call sleep(0.5)
+    Call StopSound("keypress.wav")
+    Call sleep(1)
+    
+End Function
+
+Function talk(ByVal a As String, ByVal c As Integer)
+
+    Dim ud As Single
+    chat_d.Visible = False
+    chat_d.Top = 430.75
+    chat_text.Caption = ""
+    Call PlaySound("talk.wav")
+    If c = 1 Then
+        chat_text.ForeColor = 3158064
+    ElseIf c = 2 Then
+        chat_text.ForeColor = 49152
+    Else
+        chat_text.ForeColor = 8421631
+    End If
+    chat_text.Visible = True
+    chat.Visible = True
+    For i = 1 To Len(a)
+        If chat_d.Visible = True Then
+            chat_text.Caption = a
+            Exit For
+        End If
+        chat_text.Caption = Mid(a, 1, i)
+        Call sleep(0.03)
+    Next i
+    chat_d.Visible = True
+    
+    Do While chat_d.Visible
+        ud = ud + 1
+        If ud > 11 Then ud = 0
+        If ud < 6 Then
+            chat_d.Top = chat_d.Top + 1
+        Else
+            chat_d.Top = chat_d.Top - 1
+        End If
+        Call sleep(0.1)
+    Loop
+    
+End Function
+Function talk2(ByVal a As String, ByVal c As Integer)
+
+    Dim ud As Single
+    name_ok.Visible = True
+    chat_d.Visible = False
+    chat_text.Caption = ""
+    chat_text.ForeColor = 3158064
+    name_box.ForeColor = 3158064
+    Call PlaySound("talk.wav")
+    chat_text.Visible = True
+    chat.Visible = True
+    For i = 1 To Len(a)
+        chat_text.Caption = Mid(a, 1, i)
+        Call sleep(0.03)
+    Next i
+    player.Visible = True
+    name_box.Visible = True
+    name_box.SetFocus
+    name_dummy.Visible = True
+    name_dummy2.Visible = True
+    Do While name_ok.Visible = True
+        name_dummy2.Caption = name_box.Value
+        Call sleep(0.1)
+    Loop
+    Cells(8, 3) = name_box.Value
+    For i = 1 To Len(name_box.Value)
+        chat_text.Caption = "내 이름은 " & Mid(name_box.Value, 1, i)
+        Call sleep(0.03)
+    Next i
+    name_box.Visible = False
+    Call sleep(1.5)
+    
+End Function
+
+Function tutorial()
+
+    now_map = 0
+    text3.Visible = False
+    text.Caption = ""
+    text2.Caption = ""
+    Call sleep(1)
+    ingame.Left = 0
+    화면_메인.Left = 550
+    black.Visible = False
+    Call chatting(Year(Now) & "년 " & Month(Now) & "월 " & Day(Now) & "일", "")
+    Call chatting("한국을 대표하는 무궁화가", "갑자기 사라지게 된다.")
+    Call chatting("정부는 신속히 특공대를 꾸려", "무궁화를 찾아 나섰지만")
+    Call chatting("사라진 무궁화는", "그 누구도 찾을 수 없었다.")
+    Call sleep(0.06)
+    text.ForeColor = 14737632
+    text2.ForeColor = 14737632
+    Call sleep(0.06)
+    text.ForeColor = 12632256
+    text2.ForeColor = 12632256
+    Call sleep(0.06)
+    text.ForeColor = 8421504
+    text2.ForeColor = 8421504
+    Call sleep(0.06)
+    text.ForeColor = 4210752
+    text2.ForeColor = 4210752
+    Call sleep(0.06)
+    text.ForeColor = 0
+    text2.ForeColor = 0
+    text.Visible = False
+    text2.Visible = False
+    Call sleep(1)
+    text3.ForeColor = 0
+    text3.Visible = True
+    Call sleep(0.06)
+    text3.ForeColor = 4210752
+    Call sleep(0.06)
+    text3.ForeColor = 8421504
+    Call sleep(0.06)
+    text3.ForeColor = 12632256
+    Call sleep(0.06)
+    text3.ForeColor = 14737632
+    Call sleep(0.06)
+    text3.ForeColor = 16777215
+    Call sleep(2)
+    text3.ForeColor = 14737632
+    Call sleep(0.06)
+    text3.ForeColor = 12632256
+    Call sleep(0.06)
+    text3.ForeColor = 8421504
+    Call sleep(0.06)
+    text3.ForeColor = 4210752
+    Call sleep(0.06)
+    text3.Visible = False
+    Call sleep(1)
+    ingame.Picture = bg_0.Picture
+    Call talk2("내 이름은 ", 1)
+    Call talk("자랑스러운 동의대학교 학생이다.", 1)
+    Call talk("오늘은 주말이라 TV를 볼 예정이다.", 1)
+    Call talk("시간이 없다! 서둘러 TV가 있는 곳으로 가자.", 1)
+    Call talk("조작법 : (← → 이동) (↑ 점프 ↓ 사용)", 0)
+    name_dummy.Visible = False
+    name_dummy2.Visible = False
+    Call map_loading("tuto_block", 0, 6, True, 1, 1)
+    Call map_db_call3(0, "tuto_block7", "TV", 0, -1)
+    
+End Function
+
+
+Private Sub tab1_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If click_deny = False Then
+        tab0_text.ForeColor = 0
+        tab1_text.ForeColor = 4210752
+        tab2_text.ForeColor = 4210752
+        tab0_text.Font = "EBS주시경 Medium"
+        tab1_text.Font = "EBS주시경 Light"
+        tab2_text.Font = "EBS주시경 Light"
+        opt1_text.Visible = True
+        opt2_text.Visible = False
+        tab11.Visible = True
+        If tab21.Visible = True Then tab21.Visible = False
+        If tab31.Visible = True Then tab31.Visible = False
+    End If
+    
+End Sub
+
+Private Sub tab2_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If click_deny = False Then
+        tab1_text.ForeColor = 0
+        tab0_text.ForeColor = 4210752
+        tab2_text.ForeColor = 4210752
+        tab1_text.Font = "EBS주시경 Medium"
+        tab0_text.Font = "EBS주시경 Light"
+        tab2_text.Font = "EBS주시경 Light"
+        opt1_text.Visible = False
+        opt2_text.Visible = True
+        tab21.Visible = True
+        If tab11.Visible = True Then tab11.Visible = False
+        If tab31.Visible = True Then tab31.Visible = False
+    End If
+
+End Sub
+
+Private Sub tab3_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+    If click_deny = False Then
+        tab2_text.ForeColor = 0
+        tab1_text.ForeColor = 4210752
+        tab0_text.ForeColor = 4210752
+        tab2_text.Font = "EBS주시경 Medium"
+        tab1_text.Font = "EBS주시경 Light"
+        tab0_text.Font = "EBS주시경 Light"
+        opt1_text.Visible = False
+        opt2_text.Visible = False
+        tab31.Visible = True
+        If tab21.Visible = True Then tab21.Visible = False
+        If tab11.Visible = True Then tab11.Visible = False
+    End If
+    
+End Sub
+
+Private Sub tab11_Click()
+    Call PlaySound("click.mp3")
+    If opt1_text.Caption = "켜짐" Then
+        opt1_text.Caption = "꺼짐"
+        Cells(8, 8) = "OFF"
+        Call StopSound(bgm_name)
+        music = False
+    Else
+        opt1_text.Caption = "켜짐"
+        Cells(8, 8) = "ON"
+        Call PlaySound(bgm_name)
+        music = True
+    End If
+End Sub
+
+Private Sub tab21_Click()
+    Call PlaySound("click.mp3")
+    If opt2_text.Caption = "보통" Then
+        opt2_text.Caption = "빠름"
+        Cells(10, 8) = "FAST"
+        velo = True
+    Else
+        opt2_text.Caption = "보통"
+        Cells(10, 8) = "NORMAL"
+        velo = False
+    End If
+
+End Sub
+
+Private Sub tab31_Click()
+    Call refresh
+    시작.Caption = "여행"
+    화면_메인.Left = 0
+    화면_환경설정.Left = 550
+    tab1.Visible = False
+    tab2.Visible = False
+    tab3.Visible = False
+    tab11.Visible = False
+    tab21.Visible = False
+    tab31.Visible = False
+    tab0_text.Visible = False
+    tab1_text.Visible = False
+    tab2_text.Visible = False
+    Call refresh2
+End Sub
+Private Sub name_ok_Click()
+    If Len(name_box.Value) > 2 Then name_ok.Visible = False
+End Sub
+
+
+
+Private Sub 화면_환경설정_MouseMove(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+
+    tab2_text.ForeColor = 4210752
+    tab1_text.ForeColor = 4210752
+    tab0_text.ForeColor = 4210752
+    tab2_text.Font = "EBS주시경 Light"
+    tab1_text.Font = "EBS주시경 Light"
+    tab0_text.Font = "EBS주시경 Light"
+    tab11.Visible = False
+    tab21.Visible = False
+    tab31.Visible = False
+    opt1_text.Visible = False
+    opt2_text.Visible = False
+End Sub
+
+
+Function map_Database()
+
+    name_dummy.Left = 150.1
+    name_dummy.Top = 139.7 + 26
+    name_dummy2.Left = 215.95
+    name_dummy2.Top = 188.35 + 26
+    player.Left = 288.95
+    player.Top = 158.3 + 26
+    chat.Left = 19.55
+    chat.Top = 377.45
+    name_ok.Left = 438
+    name_ok.Top = 427.7
+    chat_text.Left = 43.5
+    chat_text.Top = 401.5
+    name_box.Left = 136
+    name_box.Top = 401
+    chat_d.Left = 447
+    chat_d.Top = 430.75
+    text.Left = 0
+    text2.Left = 0
+    text3.Left = 0
+    text.Top = 195
+    text2.Top = 245
+    text3.Top = 210
+    chat3.Left = 138.75
+    chat3.Top = 81
+    chat3_d.Left = 160.9
+    chat3_d.Top = 228.85
+    chat3_d2.Left = 161.65
+    chat3_d2.Top = 109.55
+    chat3_image.Left = 175
+    chat3_image.Top = 120.4
+    chat3_name.Left = 255
+    chat3_name.Top = 121.1
+    chat3_x.Left = 362.25
+    chat3_x.Top = 84
+    chat4.Left = 96.3
+    chat4.Top = 196.55
+    chat4_q.Left = 117.4
+    chat4_q.Top = 210
+    chat4_q2.Left = 146.3
+    chat4_q2.Top = 215.35
+    chat4_a.Left = 273
+    chat4_a.Top = 259.6
+    chat4_box.Left = 294.05
+    chat4_box.Top = 257.35
+    chat4_d.Left = 116.25
+    chat4_d.Top = 250
+    Call map_loading("tuto_block", 0, 8, False, 1, 1)
+    Call map_loading("tuto2_block", 0, 5, False, 10, 1)
+    Call map_loading("gung_", 1, 6, False, 1, 3)
+    Call map_loading("gung2_", 0, 14, False, 7, 3)
+    Call map_loading("gung3_", 0, 7, False, 22, 3)
+    Call map_loading("gung4_", 0, 14, False, 30, 3)
+    Call map_loading("busan_", 0, 15, False, 1, 5)
+    Call map_loading("busan2_", 0, 6, False, 17, 5)
+    Call map_loading("busan3_", 0, 9, False, 24, 5)
+    Call map_loading("busan4_", 0, 13, False, 34, 5)
+    Call map_loading("dok_", 0, 24, False, 1, 7)
+    Call map_loading("dok2_", 0, 6, False, 26, 7)
+    Call map_loading("dok3_", 0, 2, False, 33, 7)
+    Call map_loading("dok4_", 0, 3, False, 36, 7)
+    Call map_loading("dok5_", 0, 5, False, 40, 7)
+    Call map_db_call(0, "tuto_block", 0, 6)
+    Call map_db_call2(0, "tuto_block", 1, 2)
+    Call map_db_call(1, "tuto2_block", 0, 4)
+    Call map_db_call(2, "gung_", 1, 4)
+    Call map_db_call2(2, "gung_", 1, 4)
+    Call map_db_call(3, "gung2_", 0, 13)
+    Call map_db_call2(3, "gung2_", 0, 0)
+    Call map_db_call(4, "gung3_", 0, 5)
+    Call map_db_call2(4, "gung3_", 0, 5)
+    Call map_db_call(5, "gung4_", 0, 12)
+    Call map_db_call2(5, "gung4_", 12, 12)
+    Call map_db_call(6, "busan_", 0, 9)
+    Call map_db_call(7, "busan2_", 0, 5)
+    Call map_db_call2(7, "busan2_", 0, 5)
+    Call map_db_call(8, "busan3_", 0, 7)
+    Call map_db_call2(8, "busan3_", 0, 7)
+    Call map_db_call(9, "busan4_", 0, 9)
+    Call map_db_call(10, "dok_", 0, 22)
+    Call map_db_call(11, "dok2_", 0, 4)
+    Call map_db_call(12, "dok3_", 0, 0)
+    Call map_db_call(13, "dok4_", 0, 2)
+    Call map_db_call(14, "dok5_", 0, 2)
+    
+End Function
+
+Function map_save(ByVal b_name As String, ByVal min As Integer, ByVal max As Integer, ByVal cell_y As Integer, ByVal cell_x As Integer)
+    Dim dm As Single
+    For i = min To max
+        Cells(cell_y + 8 + dm, cell_x + 11) = ingame.Controls.Item(b_name & i).Left
+        Cells(cell_y + 8 + dm, cell_x + 12) = ingame.Controls.Item(b_name & i).Top
+        dm = dm + 1
+    Next i
+End Function
+Function map_loading(ByVal b_name As String, ByVal min As Integer, ByVal max As Integer, ByVal onoff As Boolean, ByVal cell_y As Integer, ByVal cell_x As Integer)
+    Dim dm As Single
+    For i = min To max
+        ingame.Controls.Item(b_name & i).Visible = onoff
+        ingame.Controls.Item(b_name & i).Left = Cells(cell_y + 8 + dm, cell_x + 11)
+        ingame.Controls.Item(b_name & i).Top = Cells(cell_y + 8 + dm, cell_x + 12)
+        dm = dm + 1
+    Next i
+End Function
+Function map_db_call(ByVal m_code As Integer, ByVal b_name As String, ByVal min As Integer, ByVal max As Integer)
+    For j = min To max
+        For i = Int(ingame.Controls.Item(b_name & j).Left) To Int(ingame.Controls.Item(b_name & j).Left + ingame.Controls.Item(b_name & j).Width)
+            map1(m_code, Int(ingame.Controls.Item(b_name & j).Top), i) = True
+            map1(m_code, Int(ingame.Controls.Item(b_name & j).Top) + 1, i) = True
+        Next i
+    Next j
+End Function
+Function map_db_call2(ByVal m_code As Integer, ByVal b_name As String, ByVal min As Integer, ByVal max As Integer)
+    For j = min To max
+        For i = Int(ingame.Controls.Item(b_name & j).Top) To Int(ingame.Controls.Item(b_name & j).Top + ingame.Controls.Item(b_name & j).Height)
+            map1(m_code, i, Int(ingame.Controls.Item(b_name & j).Left)) = True
+            map1(m_code, i, Int(ingame.Controls.Item(b_name & j).Left + ingame.Controls.Item(b_name & j).Width)) = True
+        Next i
+    Next j
+End Function
+Function map_db_call3(ByVal m_code As Integer, ByVal b_name As String, ByVal ttext As String, ByVal mox As Single, ByVal moy As Single)
+    For i = Int(ingame.Controls.Item(b_name).Left) To Int(ingame.Controls.Item(b_name).Left + ingame.Controls.Item(b_name).Width)
+        For k = Int(ingame.Controls.Item(b_name).Top) To Int(ingame.Controls.Item(b_name).Top + ingame.Controls.Item(b_name).Height)
+            map2(m_code, k, i) = ttext
+        Next k
+    Next i
+    mo = b_name
+    mo_x = mox
+    mo_y = moy
+    inc = 0
+    ingame.Controls.Item(b_name).Visible = True
+End Function
+Function object_delete(ByVal m_code As Integer, ByVal b_name As String)
+    For i = Int(ingame.Controls.Item(b_name).Left) To Int(ingame.Controls.Item(b_name).Left + ingame.Controls.Item(b_name).Width)
+        For k = Int(ingame.Controls.Item(b_name).Top) To Int(ingame.Controls.Item(b_name).Top + ingame.Controls.Item(b_name).Height)
+            map2(m_code, k, i) = ""
+        Next k
+    Next i
+    ingame.Controls.Item(b_name).Visible = False
+End Function
+Private Sub map_enter_Click()
+    enter_stage
+End Sub
+
+Function enter_stage()
+    map_image.Visible = False
+    map_text.Visible = False
+    map_enter.Visible = False
+    lb4.Visible = False
+    map.Visible = False
+    player.Visible = True
+    refresh
+    화면_스테이지.Left = 550
+    ingame.Left = 0
+    Select Case stage
+        Case 1:
+            ingame.Picture = bg_2.Picture
+            player.Left = 5
+            player.Top = 310
+            now_map = 2
+            Call map_loading("gung_", 1, 4, True, 1, 3)
+            Call map_db_call3(2, "gung_5", "티켓", 0, 1)
+            refresh2
+        Case 2:
+            ingame.Picture = bg_6.Picture
+            player.Left = 15
+            player.Top = 423
+            now_map = 6
+            Call map_loading("busan_", 0, 9, True, 1, 5)
+            Call map_db_call3(6, "busan_10", "쓰레기1", 0, 0)
+            Call map_db_call3(6, "busan_11", "쓰레기2", 0, 0)
+            Call map_db_call3(6, "busan_12", "쓰레기3", 0, 0)
+            Call map_db_call3(6, "busan_13", "쓰레기4", 0, 0)
+            Call map_db_call3(6, "busan_14", "쓰레기5", 0, 0)
+            refresh2
+            Call talk("지도를 따라오긴 했는데 여긴 어디지?", 1)
+            Call talk("뭐야 길에 쓰레기가 너무 많아!", 1)
+        Case 3:
+            ingame.Picture = bg_10.Picture
+            player.Left = 5
+            player.Top = 194
+            now_map = 10
+            Call map_loading("dok_", 0, 22, True, 1, 7)
+            Call map_db_call3(10, "dok_23", "메탄", 0, 1)
+            refresh2
+            ship.Visible = True
+    End Select
+    ingame.SetFocus
+End Function
+
+Function info(ByVal code As Single)
+    Call PlaySound("click.mp3")
+    Select Case code
+        Case 1:
+            chat3_name.Caption = "김치"
+            chat3_name.Font.Size = 48
+            chat3_name.ForeColor = 192
+            chat3_image.Picture = gung3_6.Picture
+            chat3_d.Caption = "무·배추·오이 등의 여러 채소를 소금에 절이고 양념을 버무려 발효시킨 식품으로 한국을 대표하는 채소 발효 식품이다."
+        Case 2:
+            chat3_name.Caption = "비빔밥"
+            chat3_name.Font.Size = 36
+            chat3_name.ForeColor = 33023
+            chat3_image.Picture = bibim.Picture
+            chat3_d.Caption = "흰밥 위에 갖가지 나물과 고기볶음, 튀각 등을 올려 비벼     먹는 비빔밥은 우리와 외국인 모두 첫손으로 꼽는 우리나라의 대표 음식이다."
+        Case 3:
+            chat3_name.Caption = "메탄" & vbCr & "하이드레이트"
+            chat3_name.Font.Size = 23
+            chat3_name.ForeColor = 16744576
+            chat3_image.Picture = dok_23.Picture
+            chat3_d.Caption = "독도의 해양자원 중 하나로써 천연가스가 낮은 온도 및 압력에 의해 얼음 형태로 고체화된 물질이다. 불타는 얼음이라고도 불린다."
+        Case 4:
+            chat3_name.Caption = "무궁화"
+            chat3_name.Font.Size = 36
+            chat3_name.ForeColor = 16761087
+            chat3_image.Picture = dok5_5.Picture
+            chat3_d.Caption = "관습적으로 국화(國花)로 여겨온 아욱과의 낙엽관목이다.    7월부터 10월까지 100여 일간 계속 피므로 무궁화라는 이름을 가지게 되었다."
+    End Select
+    chat3_d.ForeColor = 16777215
+    chat3.Visible = True
+    chat3_d.Visible = True
+    chat3_d2.Visible = True
+    chat3_name.Visible = True
+    chat3_image.Visible = True
+    Call sleep(0.06)
+    chat3_d.ForeColor = 16777215
+    Call sleep(0.06)
+    chat3_d.ForeColor = 14737632
+    Call sleep(0.06)
+    chat3_d.ForeColor = 12632256
+    Call sleep(0.06)
+    chat3_d.ForeColor = 8421504
+    Call sleep(0.06)
+    chat3_d.ForeColor = 4210752
+    chat3_x.Visible = True
+    Do While chat3.Visible = True
+        Call sleep(0.5)
+    Loop
+
+End Function
+Function last_quest()
+
+    chat5_q.Picture = chat5_q3.Picture
+    chat5.Visible = True
+    chat5_q.Visible = True
+    chat5_left_d.Visible = True
+    chat5_left_d2.Visible = True
+    chat5_right_d.Visible = True
+    chat5_right_d2.Visible = True
+    chat5_done.Visible = True
+    chat5_done2.Visible = True
+    Call talk("흠.. 올바른 태극기를 찾아보자.", 1)
+    last_answer = 3
+    
+End Function
+
+Private Sub chat5_right_d_Click()
+    Call PlaySound("page_change.mp3")
+    last_answer = last_answer + 1
+    If last_answer > 5 Then last_answer = 1
+    chat5_q.Picture = ingame.Controls.Item("chat5_q" & last_answer).Picture
+End Sub
+Private Sub chat5_right_d2_Click()
+    Call PlaySound("page_change.mp3")
+    last_answer = last_answer + 1
+    If last_answer > 5 Then last_answer = 1
+    chat5_q.Picture = ingame.Controls.Item("chat5_q" & last_answer).Picture
+End Sub
+Private Sub chat5_left_d_Click()
+    Call PlaySound("page_change.mp3")
+    last_answer = last_answer + 1
+    If last_answer > 5 Then last_answer = 1
+    chat5_q.Picture = ingame.Controls.Item("chat5_q" & last_answer).Picture
+End Sub
+Private Sub chat5_left_d2_Click()
+    Call PlaySound("page_change.mp3")
+    last_answer = last_answer - 1
+    If last_answer < 1 Then last_answer = 5
+    chat5_q.Picture = ingame.Controls.Item("chat5_q" & last_answer).Picture
+End Sub
+Private Sub chat5_done_Click()
+    If last_answer = 1 Then
+        Call talk("당연히 이게 태극기지!", 1)
+        chat5.Visible = False
+        chat5_q.Visible = False
+        chat5_left_d.Visible = False
+        chat5_left_d2.Visible = False
+        chat5_right_d.Visible = False
+        chat5_right_d2.Visible = False
+        chat5_done.Visible = False
+        chat5_done2.Visible = False
+        Call talk("(독도에 태극기를 설치하였습니다)", 0)
+        Call map_loading("dok5_", 3, 3, True, 43, 7)
+        Call map_db_call3(14, "dok5_5", "무궁화", 0, 1)
+        dok5_5.Picture = done.Picture
+        Call talk("잠깐! 저건...", 1)
+        Call map_db_call(14, "dok5_", 3, 3)
+    Else
+        Call talk("흠.. 이건 아닌 것 같아.", 1)
+    End If
+End Sub
+Private Sub chat5_done2_Click()
+    If last_answer = 1 Then
+        Call talk("당연히 이게 태극기지!", 1)
+        chat5.Visible = False
+        chat5_q.Visible = False
+        chat5_left_d.Visible = False
+        chat5_left_d2.Visible = False
+        chat5_right_d.Visible = False
+        chat5_right_d2.Visible = False
+        chat5_done.Visible = False
+        chat5_done2.Visible = False
+        Call talk("(독도에 태극기를 설치하였습니다)", 0)
+        Call map_loading("dok5_", 3, 3, True, 43, 7)
+        Call map_db_call3(14, "dok5_5", "무궁화", 0, 1)
+        dok5_5.Picture = done.Picture
+        Call talk("잠깐! 저건...", 1)
+        Call map_db_call(14, "dok5_", 3, 3)
+    Else
+        Call talk("흠.. 이건 아닌 것 같아.", 1)
+    End If
+End Sub
+
+Function quest(ByVal code As Single)
+    
+    Dim answer As String
+    chat4.Visible = True
+    chat4_d.Width = 0
+    chat4_d.Visible = True
+    chat4_q.Visible = True
+    Select Case code
+        Case 1:
+            chat4_q2.Caption = "00이란 우리나라 고유의 옷이다."
+            answer = "한복"
+        Case 2:
+            chat4_q2.Caption = "000의 꽃말은 끈기, 아름다움이다."
+            answer = "무궁화"
+        Case 3:
+            chat4_q2.Caption = "독도의 날은 10월 OO일이다."
+            answer = "25"
+    End Select
+    chat4_q2.ForeColor = 16777215
+    chat4_q2.Visible = True
+    chat4_d.Width = 27.5
+    Call sleep(0.06)
+    chat4_q2.ForeColor = 16777215
+    chat4_d.Width = 55
+    Call sleep(0.06)
+    chat4_q2.ForeColor = 14737632
+    chat4_d.Width = 82.5
+    Call sleep(0.06)
+    chat4_q2.ForeColor = 12632256
+    chat4_d.Width = 110
+    Call sleep(0.06)
+    chat4_q2.ForeColor = 8421504
+    chat4_d.Width = 137.5
+    Call sleep(0.06)
+    chat4_q2.ForeColor = 4210752
+    chat4_d.Width = 165
+    chat4_a.ForeColor = 14737632
+    chat4_a.Visible = True
+    Call sleep(0.06)
+    chat4_d.Width = 192.5
+    chat4_a.ForeColor = 12632256
+    Call sleep(0.06)
+    chat4_d.Width = 220
+    chat4_a.ForeColor = 8421504
+    Call sleep(0.06)
+    chat4_d.Width = 247.5
+    chat4_a.ForeColor = 4210752
+    chat4_box.Value = ""
+    chat4_box.Visible = True
+    chat4_box.SetFocus
+    Call sleep(0.06)
+    chat4_d.Width = 270
+    Do While chat4_box.Value <> answer
+        Call sleep(0.5)
+    Loop
+    chat4_q.Visible = False
+    chat4_q2.Visible = False
+    chat4_d.Visible = False
+    chat4_a.Visible = False
+    chat4_box.Visible = False
+    chat4.Visible = False
+    ingame.SetFocus
+    
+
+End Function
+
+Private Sub chat3_x_Click()
+    chat3_x.Visible = False
+    chat3_d.Visible = False
+    chat3_d2.Visible = False
+    chat3_name.Visible = False
+    chat3_image.Visible = False
+    chat3.Visible = False
+End Sub
+
+Function trigger(ByVal trig As String)
+
+    Select Case trig
+        Case "TV":
+            Call talk("TV에서는 뉴스 방송이 진행중이다.", 1)
+            Call talk("(무궁화가 사라진지 10년이 지났습니다.)", 1)
+            Call talk("(정부는 무궁화를 찾는 사람에게)", 1)
+            Call talk("(막대한 보상금을 준다고 합니다.)", 1)
+            Call talk("저거면 등록금 걱정은 없겠네!", 1)
+            Call talk("하지만 어디에 있는 줄 알고..", 1)
+            Call talk("바람이나 쐬러 나가자.", 1)
+            Call map_db_call3(0, "tuto_block8", "마당", 1, 0)
+        Case "마당":
+            now_map = 1
+            player.Left = 10
+            player.Top = 400
+            ingame.Picture = bg_1.Picture
+            Call map_loading("tuto_block", 0, 8, False, 1, 1)
+            Call map_loading("tuto2_block", 0, 5, True, 10, 1)
+            Call map_db_call3(1, "tuto2_block5", "지도", 0, -1)
+        Case "지도":
+            Call talk("이건.. 지도?", 1)
+            Call talk("(지도에는 경복궁이 표시되어 있다.)", 1)
+            Call talk("궁금한데 한번 가볼까?", 1)
+            stage = 1
+            Cells(10, 3) = stage
+            refresh
+            map_image.Visible = False
+            map_text.Visible = False
+            map_enter.Visible = False
+            화면_스테이지.Left = 0
+            ingame.Left = 550
+            refresh2
+            Call map_loading("tuto2_block", 0, 5, False, 10, 1)
+            Call object_delete(now_map, "tuto2_block5")
+        Case "티켓":
+            Call talk("경복궁 입장 티켓이다!", 1)
+            Call object_delete(now_map, "gung_5")
+            Call map_db_call3(2, "gung_6", "경복궁", 0, 1)
+        Case "경복궁":
+            now_map = 3
+            player.Left = 5
+            player.Top = 340
+            ingame.Picture = bg_3.Picture
+            Call map_loading("gung_", 1, 5, False, 1, 1)
+            Call map_loading("gung2_", 0, 13, True, 7, 3)
+            Call object_delete(now_map, "gung_6")
+            Call map_db_call3(3, "gung2_14", "건너기", 1, 0)
+        Case "건너기":
+            Call object_delete(now_map, "gung2_14")
+            now_map = 4
+            player.Left = 5
+            player.Top = 416
+            ingame.Picture = bg_4.Picture
+            Call map_loading("gung2_", 0, 13, False, 7, 3)
+            Call map_loading("gung3_", 0, 5, True, 22, 3)
+            Call map_db_call3(4, "gung3_6", "김치", 0, 1)
+        Case "김치":
+            Call object_delete(now_map, "gung3_6")
+            Call talk("이건 우리나라 김치잖아?", 1)
+            Call talk("맛있어 보이는데 먹어야겠다!", 1)
+            Call info(1)
+            Call talk("(김치로 인해 점프력이 상승합니다.)", 0)
+            over_jump = True
+            Call map_db_call3(4, "gung3_7", "건너기2", 0, 1)
+        Case "건너기2":
+            now_map = 5
+            ingame.Picture = bg_5.Picture
+            over_jump = False
+            Call object_delete(now_map, "gung3_7")
+            player.Left = 173
+            player.Top = 404
+            Call map_loading("gung3_", 0, 5, False, 22, 3)
+            Call map_loading("gung4_", 0, 12, True, 30, 3)
+            Call map_db_call3(5, "gung4_13", "질문", 0, 1)
+        Case "질문":
+            Call object_delete(now_map, "gung4_13")
+            Call talk("무언가 질문이 적혀있다.", 1)
+            Call talk("나아가기 위해선 지나칠 수 없다.", 1)
+            Call quest(1)
+            Call map_db_call3(5, "gung4_14", "건너기3", 0, 1)
+        Case "건너기3":
+            over_jump = False
+            Call object_delete(now_map, "gung4_14")
+            Call talk("이번에도 비슷한 지도를 발견했다.", 1)
+            Call talk("원래 있던 지도와 딱 맞게 붙여진다.", 1)
+            Call talk("지도에는 새로운 곳이 표시되어 있다.", 1)
+            Call talk("이곳은..", 1)
+            stage = 2
+            Cells(10, 3) = stage
+            refresh
+            map_size_up
+            map.Visible = True
+            map_image.Visible = False
+            map_text.Visible = False
+            map_enter.Visible = False
+            화면_스테이지.Left = 0
+            ingame.Left = 550
+            refresh2
+            Call map_loading("gung4_", 0, 14, False, 30, 3)
+        Case "쓰레기1":
+            Call object_delete(now_map, "busan_10")
+            If busan_10.Visible = False And busan_11.Visible = False And busan_12.Visible = False And busan_13.Visible = False And busan_14.Visible = False Then
+                Call talk("휴.. 쓰레기를 전부 치웠다.", 1)
+                Call map_db_call3(6, "busan_15", "범어사", -1, 0)
+            End If
+        Case "쓰레기2":
+            Call object_delete(now_map, "busan_11")
+            If busan_10.Visible = False And busan_11.Visible = False And busan_12.Visible = False And busan_13.Visible = False And busan_14.Visible = False Then
+                Call talk("휴.. 쓰레기를 전부 치웠다.", 1)
+                Call map_db_call3(6, "busan_15", "범어사", -1, 0)
+            End If
+        Case "쓰레기3":
+            Call object_delete(now_map, "busan_12")
+            If busan_10.Visible = False And busan_11.Visible = False And busan_12.Visible = False And busan_13.Visible = False And busan_14.Visible = False Then
+                Call talk("휴.. 쓰레기를 전부 치웠다.", 1)
+                Call map_db_call3(6, "busan_15", "범어사", -1, 0)
+            End If
+        Case "쓰레기4":
+            Call object_delete(now_map, "busan_13")
+            If busan_10.Visible = False And busan_11.Visible = False And busan_12.Visible = False And busan_13.Visible = False And busan_14.Visible = False Then
+                Call talk("휴.. 쓰레기를 전부 치웠다.", 1)
+                Call map_db_call3(6, "busan_15", "범어사", -1, 0)
+            End If
+        Case "쓰레기5":
+            Call object_delete(now_map, "busan_14")
+            If busan_10.Visible = False And busan_11.Visible = False And busan_12.Visible = False And busan_13.Visible = False And busan_14.Visible = False Then
+                Call talk("휴.. 쓰레기를 전부 치웠다.", 1)
+                Call map_db_call3(6, "busan_15", "범어사", -1, 0)
+            End If
+        Case "범어사":
+            now_map = 7
+            ingame.Picture = bg_7.Picture
+            Call object_delete(now_map, "busan_15")
+            player.Left = 8
+            player.Top = 410
+            Call map_loading("busan_", 0, 9, False, 1, 5)
+            Call map_loading("busan2_", 0, 5, True, 17, 5)
+            Call map_db_call3(7, "busan2_6", "불상", 0, 1)
+            Call talk("산을 올라아보니 알겠어.", 1)
+            Call talk("여기는 부산에 있는 범어사다!", 1)
+        Case "불상":
+            Call talk("불상 앞에 왠 음식이 놓여있다.", 1)
+            Call info(2)
+            Call talk("정말 맛있어 보이는 비빔밥이군.", 1)
+            Call talk("그 많던 쓰레기를 혼자 치우다니", 0)
+            Call talk("정말 심성이 고은 아이로고.", 0)
+            Call talk("불상이 말을 한다?!", 1)
+            Call talk("보아하니 무언가를 찾고 있구나.", 0)
+            Call talk("그 뜻이 향하는 곳으로 보내주겠다.", 0)
+            Call object_delete(now_map, "busan2_6")
+            now_map = 8
+            ingame.Picture = bg_8.Picture
+            player.Left = 10
+            player.Top = 417
+            Call map_loading("busan2_", 0, 5, False, 17, 5)
+            Call map_loading("busan3_", 0, 7, True, 24, 5)
+            Call map_db_call3(8, "busan3_8", "질문2", 0, 1)
+            Call talk("(정신을 차리니 해운대였다.)", 1)
+        Case "질문2":
+            Call object_delete(now_map, "busan3_8")
+            Call talk("또 질문 상자다!", 1)
+            Call quest(2)
+            Call map_db_call3(8, "busan3_9", "지도2", 0, 1)
+        Case "지도2":
+            Call object_delete(now_map, "busan3_9")
+            Call talk("역시 지도가 있었다!", 1)
+            Call talk("지도에 표시된 곳은..", 1)
+            Call talk("독도?!", 1)
+            Call talk("하지만 독도는 걸어서 갈 수 없는데..", 1)
+            Call talk("주변을 한 번 살펴보자.", 1)
+            now_map = 9
+            ingame.Picture = bg_9.Picture
+            player.Left = 5
+            player.Top = 427
+            Call map_loading("busan3_", 0, 7, False, 24, 5)
+            Call map_loading("busan4_", 0, 9, True, 34, 5)
+            Call map_db_call3(9, "busan4_13", "독도이동", 1, 0)
+        Case "배조각1":
+            Call object_delete(now_map, "busan4_10")
+            If busan4_10.Visible = False And busan4_11.Visible = False And busan4_11.Visible = False Then
+                Call talk("이 나무들로 배를 만들 수 있겠어!", 1)
+                Call talk("배를 획득하여 바다를 건널 수 있습니다.", 0)
+                ship.Left = player.Left - 93
+                ship.Top = player.Top - 8.5
+                ship.Visible = True
+            End If
+        Case "배조각2":
+            Call object_delete(now_map, "busan4_11")
+            If busan4_10.Visible = False And busan4_11.Visible = False And busan4_11.Visible = False Then
+                Call talk("이 나무들로 배를 만들 수 있겠어!", 1)
+                Call talk("배를 획득하여 바다를 건널 수 있습니다.", 0)
+                ship.Left = player.Left - 93
+                ship.Top = player.Top - 8.5
+                ship.Visible = True
+            End If
+        Case "배조각3":
+            Call object_delete(now_map, "busan4_12")
+            If busan4_10.Visible = False And busan4_11.Visible = False And busan4_11.Visible = False Then
+                Call talk("이 나무들로 배를 만들 수 있겠어!", 1)
+                Call talk("배를 획득하여 바다를 건널 수 있습니다.", 0)
+                ship.Left = player.Left - 93
+                ship.Top = player.Top - 8.5
+                ship.Visible = True
+            End If
+        Case "독도이동":
+            Call object_delete(now_map, "busan4_13")
+            stage = 3
+            Cells(10, 3) = stage
+            refresh
+            map_size_up
+            map.Visible = True
+            map_image.Visible = False
+            map_text.Visible = False
+            map_enter.Visible = False
+            화면_스테이지.Left = 0
+            ingame.Left = 550
+            refresh2
+            Call map_loading("busan4_", 0, 9, False, 34, 5)
+        Case "메탄":
+            Call talk("이건 뭐지?", 1)
+            Call info(3)
+            Call talk("독도는 천연 자원이 정말 풍부하군.", 1)
+            Call object_delete(now_map, "dok_23")
+            Call map_db_call3(10, "dok_24", "위로", 0, -1)
+        Case "위로":
+            ship.Visible = False
+            Call object_delete(now_map, "dok_24")
+            now_map = 11
+            player.Left = 7
+            player.Top = 401
+            ingame.Picture = bg_11.Picture
+            Call map_loading("dok_", 0, 22, False, 1, 7)
+            Call map_loading("dok2_", 0, 4, True, 26, 7)
+            Call talk("육지다! 저기가 독도인가?", 1)
+            Call talk("표지판이 보인다. 어서 가보자!", 1)
+            Call map_db_call3(11, "dok2_6", "표지판", 0, 0)
+            Call map_db_call3(11, "dok2_5", "오징어", 0, -5)
+            ship.Visible = True
+        Case "오징어":
+            stat = "jump"
+            jumping = 150
+            Call PlaySound("sq_jump.wav")
+        Case "표지판":
+            Call talk("[울릉도]", 0)
+            Call talk("[독도는 동남쪽 뱃길 따라 이백 리]", 0)
+            Call talk("표지판이 아주 친절하군!", 1)
+            Call talk("독도로 가보자.", 1)
+            Call object_delete(now_map, "dok2_5")
+            Call object_delete(now_map, "dok2_6")
+            ship.Visible = False
+            now_map = 12
+            player.Left = 14
+            player.Top = 397
+            ingame.Picture = bg_12.Picture
+            Call map_loading("dok2_", 0, 4, False, 26, 7)
+            Call map_loading("dok3_", 0, 0, True, 33, 7)
+            Call map_db_call3(12, "dok3_1", "경비대", 0, 0)
+            Call talk("여기가 독도인 것 같은데..", 1)
+            Call talk("저기 누가 있다!", 1)
+        Case "경비대":
+            Call talk("어서오십시오. 이곳은 독도입니다.", 2)
+            Call talk("안녕하세요! 들어가도 될까요?", 1)
+            Call talk("흠.. 독도에 들어올 자격이 있는지", 2)
+            Call talk("지금부터 문제를 드리겠습니다.", 2)
+            Call talk("또 문제다!", 1)
+            Call quest(3)
+            Call talk("합격입니다. 지나가십시오.", 2)
+            Call object_delete(now_map, "dok3_1")
+            dok3_1.Visible = True
+            Call map_db_call3(12, "dok3_2", "마지막", 1, 0)
+        Case "마지막":
+            dok3_1.Visible = False
+            Call object_delete(now_map, "dok3_2")
+            now_map = 13
+            player.Left = 466
+            player.Top = 209
+            forward = "l"
+            player.Picture = ingame.Controls.Item(forward & "_" & stat & sprite).Picture
+            ingame.Picture = bg_13.Picture
+            Call map_loading("dok3_", 0, 0, False, 33, 7)
+            Call map_loading("dok4_", 0, 2, True, 36, 7)
+            Call map_db_call3(13, "dok4_3", "마지막2", 0, -1)
+            Call talk("독도에 이런 동굴이 있었다니", 1)
+            Call talk("과거 화산 분화구였다고 들은 적이 있어!", 1)
+            Call talk("독도는 화산활동에 의해 생성되었구나.", 1)
+        Case "마지막2":
+            ingame.Picture = bg_14.Picture
+            Call map_loading("dok4_", 0, 2, False, 36, 7)
+            Call object_delete(now_map, "dok4_3")
+            now_map = 14
+            player.Left = 20
+            player.Top = 20
+            Call map_loading("dok5_", 0, 2, True, 40, 7)
+            Call map_db_call3(14, "dok5_5", "무궁화", 0, 0)
+            Call map_db_call3(14, "dok5_4", "대한민국", 0, 1)
+        Case "대한민국":
+            Call object_delete(now_map, "dok5_4")
+            Call talk("저 너머에 무언가 보이는 것 같은데..", 1)
+            Call talk("건널 방법이 없어!", 1)
+            Call talk("이 퀴즈를 풀면 도움이 되려나", 1)
+            last_quest
+        Case "무궁화":
+            Call talk("이건..!", 1)
+            Call info(4)
+            Call talk("정말로 무궁화다..", 1)
+            Call talk("이제 등록금 걱정은 없어!", 1)
+            Call talk("무궁화 넌 내꺼야!", 1)
+            Call object_delete(now_map, "dok5_5")
+            Call map_loading("dok5_", 0, 3, False, 40, 7)
+            player.Visible = False
+            help.Visible = False
+            refresh
+            ingame.Picture = dummy.Picture
+            black.Visible = False
+            Call sleep(1)
+            Call end_chat("처음엔 등록금을 위해", "무궁화를 찾아 나섰지만")
+            Call end_chat("그보다 값진 것들을", "발견하고 있었다.")
+            Call end_chat("우리 문화는", "무엇과도 바꿀 수 없는")
+            Call end_chat("대한민국의 소중한 자산이다.", "")
+            Call end_chat2("끝.")
+            Call sleep(2)
+            refresh
+            화면_메인.Left = 0
+            ingame.Left = 550
+            refresh2
+            
+    End Select
+End Function
+
+Function end_chat(ByVal input_text As String, ByVal input_text2 As String)
+
+    text.Caption = input_text
+    text2.Caption = input_text2
+    text.ForeColor = 0
+    text2.ForeColor = 0
+    text.Visible = True
+    text2.Visible = True
+    Call sleep(0.1)
+    text.ForeColor = 4210752
+    Call sleep(0.1)
+    text.ForeColor = 8421504
+    Call sleep(0.1)
+    text.ForeColor = 12632256
+    Call sleep(0.1)
+    text.ForeColor = 14737632
+    Call sleep(0.1)
+    text.ForeColor = 16777215
+    text2.ForeColor = 4210752
+    Call sleep(0.1)
+    text2.ForeColor = 8421504
+    Call sleep(0.1)
+    text2.ForeColor = 12632256
+    Call sleep(0.1)
+    text2.ForeColor = 14737632
+    Call sleep(0.1)
+    text2.ForeColor = 16777215
+    Call sleep(2.5)
+    Call sleep(0.1)
+    text.ForeColor = 14737632
+    text2.ForeColor = 14737632
+    Call sleep(0.1)
+    text.ForeColor = 12632256
+    text2.ForeColor = 12632256
+    Call sleep(0.1)
+    text.ForeColor = 8421504
+    text2.ForeColor = 8421504
+    Call sleep(0.1)
+    text.ForeColor = 4210752
+    text2.ForeColor = 4210752
+    Call sleep(0.1)
+    text.Visible = False
+    text2.Visible = False
+    Call sleep(1)
+    
+End Function
+
+Function end_chat2(ByVal input_text As String)
+
+    text3.Caption = input_text
+    text3.ForeColor = 0
+    text3.Visible = True
+    Call sleep(0.06)
+    text3.ForeColor = 4210752
+    Call sleep(0.06)
+    text3.ForeColor = 8421504
+    Call sleep(0.06)
+    text3.ForeColor = 12632256
+    Call sleep(0.06)
+    text3.ForeColor = 14737632
+    Call sleep(0.06)
+    text3.ForeColor = 16777215
+    Call sleep(3)
+    text3.ForeColor = 14737632
+    Call sleep(0.06)
+    text3.ForeColor = 12632256
+    Call sleep(0.06)
+    text3.ForeColor = 8421504
+    Call sleep(0.06)
+    text3.ForeColor = 4210752
+    Call sleep(0.06)
+    text3.Visible = False
+    
+End Function
