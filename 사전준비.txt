@@ -1,0 +1,7 @@
+폰트 폴더 안에 있는 폰트를 설치하여야 폰트가 적용됩니다.
+해당 폰트는 상업용 무료폰트입니다.
+
+[출처]
+주시경체 - https://about.ebs.co.kr/kor/organization/font?tabVal=jusigyeong
+넷마블폰트 - http://company.netmarble.com/company/ci?tab=2
+쿠키런폰트 - https://www.cookierunfont.com/#section2
